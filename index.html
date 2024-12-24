@@ -55,11 +55,34 @@
             color: white;
             font-family: monospace;
             text-align: left;
+            display: none; /* Hide console initially */
+        }
+        #consoleOutput::-webkit-scrollbar {
+            width: 10px;
+        }
+        #consoleOutput::-webkit-scrollbar-thumb {
+            background: #00f;
+            border-radius: 5px;
+        }
+        #consoleOutput::-webkit-scrollbar-track {
+            background: #141d85;
+        }
+        #commandInput {
+            width: 80%;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 14px;
+            margin-top: 10px;
+            border: 2px solid #00f;
+            border-radius: 15px;
+            display: none; /* Hide command input initially */
         }
     </style>
 </head>
 <body>
     <h1>Minecraft Server Control</h1>
+    <div id="consoleOutput"></div> <!-- Move consoleOutput here -->
+    <input type="text" id="commandInput" placeholder="Enter server command..."> <!-- Command input box -->
     <div class="info-box">
         <button id="startServerButton">Start Server</button>
         <button id="stopServerButton">Stop Server</button>
@@ -74,10 +97,8 @@
         <span>Server Type:</span> <span id="serverType">Fabric</span>
     </div>
     <div class="info-box">
-        <span>Server IP:</span> <span id="serverIP">127.0.0.1</span>
+        <span>Server IP:</span> <span id="serverIP">[Fetching...]</span>
     </div>
-
-    <div id="consoleOutput"></div>
 
     <script>
         document.getElementById('startServerButton').addEventListener('click', function() {
@@ -92,6 +113,8 @@
                     document.getElementById('serverType').innerText = data.name;
                     document.getElementById('startServerButton').style.display = 'none';
                     document.getElementById('stopServerButton').style.display = 'none';
+                    document.getElementById('consoleOutput').style.display = 'block'; // Show console
+                    document.getElementById('commandInput').style.display = 'block'; // Show command input
                     startConsoleLog(data.ip);
                 })
                 .catch(error => console.error('Error:', error));
@@ -102,6 +125,22 @@
                 .then(response => response.json())
                 .then(data => alert(data.message))
                 .catch(error => console.error('Error:', error));
+        });
+
+        document.getElementById('commandInput').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                const command = event.target.value;
+                fetch(`/execute-command?command=${encodeURIComponent(command)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            event.target.value = '';
+                        } else {
+                            alert('Error executing command.');
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+            }
         });
 
         function startConsoleLog(ip) {
