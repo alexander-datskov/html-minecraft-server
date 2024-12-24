@@ -12,4 +12,4 @@ jobs:
 
       - name: Stop Minecraft server
         run: |
-          pkill -f "java -Xmx1024M -Xms1024M -jar /path/to/your/fabric-server.jar nogui"
+          pkill -f "java -Xmx1024M -Xms1024M -jar fabric-server.jar nogui"
