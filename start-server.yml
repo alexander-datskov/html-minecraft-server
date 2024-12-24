@@ -28,12 +28,12 @@ jobs:
       - name: Generate Server IP
         id: generate-ip
         run: |
-          ip=$(hostname -I | awk '{print $1}')
+          ip=$(curl -s http://checkip.amazonaws.com) # Get the public IP address
           echo "SERVER_IP=$ip" >> $GITHUB_ENV
 
       - name: Start Minecraft server
         run: |
-          java -Xmx1024M -Xms1024M -jar fabric-server-${{ github.event.inputs.version }}.jar nogui --server-name ${{ github.event.inputs.name }} --server-ip ${{ env.SERVER_IP }}
+          java -Xmx1024M -Xms1024M -jar fabric-server-${{ github.event.inputs.version }}.jar nogui --server-name ${{ github.event.inputs.name }}
 
       - name: Output Server IP
         run: echo "Server IP: ${{ env.SERVER_IP }}"
