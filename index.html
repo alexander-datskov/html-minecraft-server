@@ -42,6 +42,20 @@
         button:hover {
             background-color: #1e90ff;
         }
+        #consoleOutput {
+            width: 80%;
+            background-color: black;
+            border: 2px solid #00f;
+            border-radius: 15px;
+            box-shadow: 0 0 10px #00f;
+            padding: 10px;
+            margin-top: 20px;
+            height: 300px;
+            overflow-y: scroll;
+            color: white;
+            font-family: monospace;
+            text-align: left;
+        }
     </style>
 </head>
 <body>
@@ -63,6 +77,8 @@
         <span>Server IP:</span> <span id="serverIP">127.0.0.1</span>
     </div>
 
+    <div id="consoleOutput"></div>
+
     <script>
         document.getElementById('startServerButton').addEventListener('click', function() {
             const version = prompt('Enter Minecraft version:', '1.20.4');
@@ -74,6 +90,9 @@
                     document.getElementById('serverIP').innerText = data.ip;
                     document.getElementById('mcVersion').innerText = data.version;
                     document.getElementById('serverType').innerText = data.name;
+                    document.getElementById('startServerButton').style.display = 'none';
+                    document.getElementById('stopServerButton').style.display = 'none';
+                    startConsoleLog(data.ip);
                 })
                 .catch(error => console.error('Error:', error));
         });
@@ -84,6 +103,17 @@
                 .then(data => alert(data.message))
                 .catch(error => console.error('Error:', error));
         });
+
+        function startConsoleLog(ip) {
+            const consoleOutput = document.getElementById('consoleOutput');
+            const eventSource = new EventSource(`/logs?ip=${ip}`); // Adjust the path to your server logs endpoint
+            eventSource.onmessage = function(event) {
+                const newLog = document.createElement('div');
+                newLog.textContent = event.data;
+                consoleOutput.appendChild(newLog);
+                consoleOutput.scrollTop = consoleOutput.scrollHeight; // Scroll to the bottom
+            };
+        }
     </script>
 </body>
 </html>
