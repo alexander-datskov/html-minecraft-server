@@ -19,6 +19,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
+      - name: Make download script executable
+        run: chmod +x download-server.sh
+
+      - name: Download Minecraft server
+        run: ./download-server.sh
+
       - name: Start Minecraft server
         run: |
-          java -Xmx1024M -Xms1024M -jar /path/to/your/fabric-server-${{ github.event.inputs.version }}.jar nogui --server-name ${{ github.event.inputs.name }}
+          java -Xmx1024M -Xms1024M -jar fabric-server-${{ github.event.inputs.version }}.jar nogui --server-name ${{ github.event.inputs.name }}
+
