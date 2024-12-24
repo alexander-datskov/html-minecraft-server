@@ -1,0 +1,24 @@
+name: Start Minecraft Server
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Minecraft version'
+        required: true
+        default: '1.20.4'
+      name:
+        description: 'Server name'
+        required: true
+        default: 'MinecraftServer'
+
+jobs:
+  start-server:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Start Minecraft server
+        run: |
+          java -Xmx1024M -Xms1024M -jar /path/to/your/fabric-server-${{ github.event.inputs.version }}.jar nogui --server-name ${{ github.event.inputs.name }}
