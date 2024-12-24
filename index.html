@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minecraft Server Control</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #141d85;
+            color: white;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .info-box {
+            background-color: #141d85;
+            border: 2px solid #00f;
+            border-radius: 15px;
+            box-shadow: 0 0 10px #00f;
+            padding: 20px;
+            margin-bottom: 20px;
+            width: 80%;
+            text-align: center;
+        }
+        button {
+            background-color: #00f;
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 20px 2px;
+            cursor: pointer;
+            border-radius: 12px;
+            box-shadow: 0 0 10px #00f;
+        }
+        button:hover {
+            background-color: #1e90ff;
+        }
+    </style>
+</head>
+<body>
+    <h1>Minecraft Server Control</h1>
+    <div class="info-box">
+        <button id="startServerButton">Start Server</button>
+        <button id="stopServerButton">Stop Server</button>
+    </div>
+    <div class="info-box">
+        <span>Players Online:</span> <span id="playerCount">0</span>
+    </div>
+    <div class="info-box">
+        <span>Minecraft Version:</span> <span id="mcVersion">1.20.4</span>
+    </div>
+    <div class="info-box">
+        <span>Server Type:</span> <span id="serverType">Fabric</span>
+    </div>
+    <div class="info-box">
+        <span>Server IP:</span> <span id="serverIP">127.0.0.1</span>
+    </div>
+
+    <script>
+        document.getElementById('startServerButton').addEventListener('click', function() {
+            const version = prompt('Enter Minecraft version:', '1.20.4');
+            const name = prompt('Enter server name:', 'MinecraftServer');
+            fetch(`/.github/workflows/start-server.yml?version=${version}&name=${name}`)
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    document.getElementById('serverIP').innerText = data.ip;
+                    document.getElementById('mcVersion').innerText = data.version;
+                    document.getElementById('serverType').innerText = data.name;
+                })
+                .catch(error => console.error('Error:', error));
+        });
+
+        document.getElementById('stopServerButton').addEventListener('click', function() {
+            fetch(`/.github/workflows/stop-server.yml`)
+                .then(response => response.json())
+                .then(data => alert(data.message))
+                .catch(error => console.error('Error:', error));
+        });
+    </script>
+</body>
+</html>
