@@ -205,7 +205,7 @@
     <div class="info-box">
         <span>Server IP:</span> <span id="serverIP">[Fetching...]</span>
     </div>
-       <script>
+    <script>
         document.getElementById('createServerButton').addEventListener('click', function() {
             document.getElementById('overlay').style.display = 'flex';
         });
@@ -221,19 +221,24 @@
                 return;
             }
 
-            // Here you would send the server creation request to your backend/API
+            // Send server creation request to backend/API
             fetch(`/create-server?name=${encodeURIComponent(serverName)}&version=${mcVersion}&modLoader=${modLoader}`)
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Server creation failed');
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     alert(data.message);
-                    document.getElementById('serverIP').innerText = data.ip || 'IP could not be fetched';  // Update IP display
+                    document.getElementById('serverIP').innerText = data.ip || 'IP could not be fetched';
                     document.getElementById('displayedMCVersion').innerText = data.version;
                     document.getElementById('serverType').innerText = data.modLoader;
 
                     // Show the start server button and hide the create server button
                     document.getElementById('startServerButton').classList.remove('hidden');
                     document.getElementById('createServerButton').classList.add('hidden');
-                    
+
                     // Hide overlay and show the console
                     document.getElementById('overlay').style.display = 'none';
                     document.getElementById('consoleOutput').style.display = 'block';
@@ -242,7 +247,10 @@
                     // Initialize console logging
                     startConsoleLog(data.ip);
                 })
-                .catch(error => console.error('Error:', error));
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to create server. Please try again.');
+                });
         });
 
         document.getElementById('startServerButton').addEventListener('click', function() {
