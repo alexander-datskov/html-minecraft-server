@@ -14,6 +14,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            position: relative;
         }
         .info-box {
             background-color: #141d85;
@@ -77,21 +78,126 @@
             border-radius: 15px;
             display: none; /* Hide command input initially */
         }
+        #serverActions {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+        .hidden {
+            display: none;
+        }
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(20, 29, 133, 0.5); /* 50% transparent */
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        #createServerBox {
+            background-color: #141d85;
+            border: 2px solid #00f;
+            border-radius: 15px;
+            box-shadow: 0 0 10px #00f;
+            padding: 20px;
+            width: 50%;
+            text-align: center;
+        }
+        .glowing-input, .glowing-select {
+            width: 80%;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 14px;
+            margin-top: 10px;
+            border: 2px solid #00f;
+            border-radius: 15px;
+            background-color: #141d85;
+            color: white;
+            box-shadow: 0 0 10px #00f;
+        }
+        .glowing-button {
+            background-color: #00f;
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            font-size: 16px;
+            border-radius: 12px;
+            box-shadow: 0 0 10px #00f;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+        .glowing-button:hover {
+            background-color: #1e90ff;
+        }
+        .green-button {
+            background-color: #00ff00;
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            font-size: 16px;
+            border-radius: 12px;
+            box-shadow: 0 0 10px #00ff00;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .green-button:hover {
+            background-color: #32cd32;
+        }
     </style>
 </head>
 <body>
     <h1>Minecraft Server Control</h1>
     <div id="consoleOutput"></div> <!-- Move consoleOutput here -->
     <input type="text" id="commandInput" placeholder="Enter server command..."> <!-- Command input box -->
-    <div class="info-box">
-        <button id="startServerButton">Start Server</button>
-        <button id="stopServerButton">Stop Server</button>
+
+    <div id="serverActions">
+        <button id="createServerButton">Create Server</button>
+        <button id="startServerButton" class="hidden">Start Server</button>
+        <button id="stopServerButton" class="hidden">Stop Server</button>
     </div>
+
+    <div id="overlay">
+        <div id="createServerBox">
+            <h2>Create Your Minecraft Server</h2>
+            <div>
+                <label for="serverName">Server Name:</label>
+                <input type="text" id="serverName" class="glowing-input">
+            </div>
+            <div>
+                <label for="mcVersion">Minecraft Version:</label>
+                <select id="mcVersion" class="glowing-select">
+                    <!-- Add supported Minecraft versions here -->
+                    <option value="1.20.4">1.20.4</option>
+                    <option value="1.19.2">1.19.2</option>
+                    <!-- Add more versions as needed -->
+                </select>
+            </div>
+            <div>
+                <label for="modLoader">Mod Loader:</label>
+                <select id="modLoader" class="glowing-select">
+                    <option value="vanilla">Vanilla</option>
+                    <option value="forge">Forge</option>
+                    <option value="fabric">Fabric</option>
+                </select>
+            </div>
+            <div>
+                <input type="checkbox" id="acceptEULA"> <label for="acceptEULA">I accept the EULA</label>
+            </div>
+            <button id="createServerWithPreferencesButton" class="green-button">Create The Server With All Your Preferences</button>
+        </div>
+    </div>
+
     <div class="info-box">
         <span>Players Online:</span> <span id="playerCount">0</span>
     </div>
     <div class="info-box">
-        <span>Minecraft Version:</span> <span id="mcVersion">1.20.4</span>
+        <span>Minecraft Version:</span> <span id="displayedMCVersion">1.20.4</span>
     </div>
     <div class="info-box">
         <span>Server Type:</span> <span id="serverType">Fabric</span>
@@ -99,31 +205,65 @@
     <div class="info-box">
         <span>Server IP:</span> <span id="serverIP">[Fetching...]</span>
     </div>
-
     <script>
-        document.getElementById('startServerButton').addEventListener('click', function() {
-            const version = prompt('Enter Minecraft version:', '1.20.4');
-            const name = prompt('Enter server name:', 'MinecraftServer');
-            fetch(`/.github/workflows/start-server.yml?version=${version}&name=${name}`)
+        document.getElementById('createServerButton').addEventListener('click', function() {
+            document.getElementById('overlay').style.display = 'flex';
+        });
+
+        document.getElementById('createServerWithPreferencesButton').addEventListener('click', function() {
+            const serverName = document.getElementById('serverName').value;
+            const mcVersion = document.getElementById('mcVersion').value;
+            const modLoader = document.getElementById('modLoader').value;
+            const acceptEULA = document.getElementById('acceptEULA').checked;
+
+            if (!acceptEULA) {
+                alert('You must accept the EULA to create the server.');
+                return;
+            }
+
+            // Here you would send the server creation request to your backend/API
+            fetch(`/create-server?name=${encodeURIComponent(serverName)}&version=${mcVersion}&modLoader=${modLoader}`)
                 .then(response => response.json())
                 .then(data => {
                     alert(data.message);
                     document.getElementById('serverIP').innerText = data.ip;
-                    document.getElementById('mcVersion').innerText = data.version;
-                    document.getElementById('serverType').innerText = data.name;
-                    document.getElementById('startServerButton').style.display = 'none';
-                    document.getElementById('stopServerButton').style.display = 'none';
-                    document.getElementById('consoleOutput').style.display = 'block'; // Show console
-                    document.getElementById('commandInput').style.display = 'block'; // Show command input
+                    document.getElementById('displayedMCVersion').innerText = data.version;
+                    document.getElementById('serverType').innerText = data.modLoader;
+
+                    // Show the start server button and hide the create server button
+                    document.getElementById('startServerButton').classList.remove('hidden');
+                    document.getElementById('createServerButton').classList.add('hidden');
+                    
+                    // Hide overlay and show the console
+                    document.getElementById('overlay').style.display = 'none';
+                    document.getElementById('consoleOutput').style.display = 'block';
+                    document.getElementById('commandInput').style.display = 'block';
+
+                    // Initialize console logging
                     startConsoleLog(data.ip);
                 })
                 .catch(error => console.error('Error:', error));
         });
 
-        document.getElementById('stopServerButton').addEventListener('click', function() {
-            fetch(`/.github/workflows/stop-server.yml`)
+        document.getElementById('startServerButton').addEventListener('click', function() {
+            fetch('/start-server')
                 .then(response => response.json())
-                .then(data => alert(data.message))
+                .then(data => {
+                    alert(data.message);
+                    document.getElementById('startServerButton').classList.add('hidden');
+                    document.getElementById('stopServerButton').classList.remove('hidden');
+                })
+                .catch(error => console.error('Error:', error));
+        });
+
+        document.getElementById('stopServerButton').addEventListener('click', function() {
+            fetch('/stop-server')
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    document.getElementById('stopServerButton').classList.add('hidden');
+                    document.getElementById('startServerButton').classList.remove('hidden');
+                })
                 .catch(error => console.error('Error:', error));
         });
 
@@ -145,7 +285,7 @@
 
         function startConsoleLog(ip) {
             const consoleOutput = document.getElementById('consoleOutput');
-            const eventSource = new EventSource(`/logs?ip=${ip}`); // Adjust the path to your server logs endpoint
+            const eventSource = new EventSource(`/logs?ip=${ip}`);
             eventSource.onmessage = function(event) {
                 const newLog = document.createElement('div');
                 newLog.textContent = event.data;
