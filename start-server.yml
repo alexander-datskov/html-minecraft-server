@@ -1,41 +1,37 @@
-name: Start Minecraft Server
+#!/bin/sh
 
-on:
-  workflow_dispatch:
-    inputs:
-      version:
-        description: 'Minecraft version'
-        required: true
-        default: '1.20.4'
-      name:
-        description: 'Server name'
-        required: true
-        default: 'MinecraftServer'
+# Get the Minecraft version and server name from the script arguments
+VERSION=$1
+SERVER_NAME=$2
 
-jobs:
-  start-server:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+# Create server directory if it doesn't exist
+mkdir -p ~/minecraft-server
+cd ~/minecraft-server
 
-      - name: Make download script executable
-        run: chmod +x download-server.sh
+# Download Minecraft server JAR file if it doesn't exist
+if [ ! -f "minecraft_server.${VERSION}.jar" ]; then
+    wget https://launcher.mojang.com/v1/objects/YOUR_SERVER_JAR_HASH/minecraft_server.${VERSION}.jar
+fi
 
-      - name: Download Minecraft server
-        run: ./download-server.sh
+# Generate SHA-1 hash of the JAR file
+JAR_HASH=$(sha1sum minecraft_server.${VERSION}.jar | awk '{ print $1 }')
 
-      - name: Generate Server IP
-        id: generate-ip
-        run: |
-          ip=$(curl -s http://checkip.amazonaws.com) # Get the public IP address
-          echo "SERVER_IP=$ip" >> $GITHUB_ENV
+# Accept the EULA
+echo "eula=true" > eula.txt
 
-      - name: Start Minecraft server
-        run: |
-          java -Xmx1024M -Xms1024M -jar fabric-server-${{ github.event.inputs.version }}.jar nogui --server-name ${{ github.event.inputs.name }}
+# Create or update server properties
+cat <<EOL > server.properties
+server-name=${SERVER_NAME}
+server-port=25565
+motd=A Minecraft Server
+max-players=20
+EOL
 
-      - name: Output Server IP
-        run: echo "Server IP: ${{ env.SERVER_IP }}"
-        env:
-          SERVER_IP: ${{ env.SERVER_IP }}
+# Start the server
+java -Xmx1024M -Xms1024M -jar minecraft_server.${VERSION}.jar nogui &
+
+# Fetch the public IP address
+PUBLIC_IP=$(curl -s http://checkip.amazonaws.com)
+
+echo "Server started with JAR hash: ${JAR_HASH}"
+echo "Server IP: ${PUBLIC_IP}"
