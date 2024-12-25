@@ -221,7 +221,7 @@
                 return;
             }
 
-            // Send server creation request to backend/API
+            // Here you would send the server creation request to your backend/API
             fetch(`/create-server?name=${encodeURIComponent(serverName)}&version=${mcVersion}&modLoader=${modLoader}`)
                 .then(response => {
                     if (!response.ok) {
