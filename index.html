@@ -221,11 +221,11 @@
                 return;
             }
 
-            // Here you would send the server creation request to your backend/API
+            // Send server creation request to backend/API
             fetch(`/create-server?name=${encodeURIComponent(serverName)}&version=${mcVersion}&modLoader=${modLoader}`)
                 .then(response => {
                     if (!response.ok) {
-                        throw new Error('Server creation failed');
+                        return response.json().then(error => { throw new Error(error.message); });
                     }
                     return response.json();
                 })
@@ -249,12 +249,14 @@
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('Failed to create server. Please try again.');
+                    alert(error.message || 'Failed to create server. Please try again.');
                 });
         });
 
         document.getElementById('startServerButton').addEventListener('click', function() {
-            fetch('/start-server')
+            fetch('/start-server', {
+                method: 'POST'
+            })
                 .then(response => response.json())
                 .then(data => {
                     alert(data.message);
@@ -265,7 +267,9 @@
         });
 
         document.getElementById('stopServerButton').addEventListener('click', function() {
-            fetch('/stop-server')
+            fetch('/stop-server', {
+                method: 'POST'
+            })
                 .then(response => response.json())
                 .then(data => {
                     alert(data.message);
@@ -278,7 +282,11 @@
         document.getElementById('commandInput').addEventListener('keypress', function(event) {
             if (event.key === 'Enter') {
                 const command = event.target.value;
-                fetch(`/execute-command?command=${encodeURIComponent(command)}`)
+                fetch('/execute-command', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ command: command })
+                })
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
