@@ -205,7 +205,7 @@
     <div class="info-box">
         <span>Server IP:</span> <span id="serverIP">[Fetching...]</span>
     </div>
-    <script>
+       <script>
         document.getElementById('createServerButton').addEventListener('click', function() {
             document.getElementById('overlay').style.display = 'flex';
         });
@@ -226,7 +226,7 @@
                 .then(response => response.json())
                 .then(data => {
                     alert(data.message);
-                    document.getElementById('serverIP').innerText = data.ip;
+                    document.getElementById('serverIP').innerText = data.ip || 'IP could not be fetched';  // Update IP display
                     document.getElementById('displayedMCVersion').innerText = data.version;
                     document.getElementById('serverType').innerText = data.modLoader;
 
