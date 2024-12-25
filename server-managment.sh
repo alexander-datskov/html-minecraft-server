@@ -1,9 +1,27 @@
-#!/bin/sh
+#!/bin/bash
+
+# Function to fetch the SHA-1 hash of the Minecraft server JAR file
+fetch_server_hash() {
+    VERSION=$1
+    # Download the manifest file which contains the hash of the version
+    wget -q -O - https://launchermeta.mojang.com/mc/game/version_manifest.json | \
+    grep -A 3 "\"id\": \"${VERSION}\"" | \
+    grep url | \
+    awk -F ': "' '{print $2}' | \
+    sed 's/",//' | \
+    xargs wget -q -O - | \
+    grep sha1 | \
+    awk -F ': "' '{print $2}' | \
+    sed 's/",//'
+}
 
 # Function to start the Minecraft server
 start_server() {
     VERSION=$1
     SERVER_NAME=$2
+
+    # Fetch the SHA-1 hash dynamically
+    JAR_HASH=$(fetch_server_hash $VERSION)
 
     # Create server directory if it doesn't exist
     mkdir -p ~/minecraft-server
@@ -11,11 +29,8 @@ start_server() {
 
     # Download Minecraft server JAR file if it doesn't exist
     if [ ! -f "minecraft_server.${VERSION}.jar" ]; then
-        wget https://launcher.mojang.com/v1/objects/YOUR_SERVER_JAR_HASH/minecraft_server.${VERSION}.jar
+        wget "https://launcher.mojang.com/v1/objects/${JAR_HASH}/server.jar" -O "minecraft_server.${VERSION}.jar"
     fi
-
-    # Generate SHA-1 hash of the JAR file
-    JAR_HASH=$(sha1sum minecraft_server.${VERSION}.jar | awk '{ print $1 }')
 
     # Accept the EULA
     echo "eula=true" > eula.txt
@@ -28,7 +43,7 @@ motd=A Minecraft Server
 max-players=20
 EOL
 
-    # Start the server
+    # Start the server in a screen session
     screen -dmS minecraft java -Xmx1024M -Xms1024M -jar minecraft_server.${VERSION}.jar nogui
 
     # Fetch the public IP address
