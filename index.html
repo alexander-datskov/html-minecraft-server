@@ -205,6 +205,7 @@
     <div class="info-box">
         <span>Server IP:</span> <span id="serverIP">[Fetching...]</span>
     </div>
+</body>
     <script>
         document.getElementById('createServerButton').addEventListener('click', function() {
             document.getElementById('overlay').style.display = 'flex';
@@ -221,8 +222,7 @@
                 return;
             }
 
-            // Send server creation request to backend/API
-            fetch(`/create-server?name=${encodeURIComponent(serverName)}&version=${mcVersion}&modLoader=${modLoader}`)
+            fetch(`/start-server?name=${encodeURIComponent(serverName)}&version=${mcVersion}&modLoader=${modLoader}`)
                 .then(response => {
                     if (!response.ok) {
                         return response.json().then(error => { throw new Error(error.message); });
@@ -254,7 +254,7 @@
         });
 
         document.getElementById('startServerButton').addEventListener('click', function() {
-            fetch('/start-server', {
+            fetch('/server-management.sh start', {
                 method: 'POST'
             })
                 .then(response => response.json())
@@ -267,7 +267,7 @@
         });
 
         document.getElementById('stopServerButton').addEventListener('click', function() {
-            fetch('/stop-server', {
+            fetch('/server-management.sh stop', {
                 method: 'POST'
             })
                 .then(response => response.json())
@@ -310,5 +310,4 @@
             };
         }
     </script>
-</body>
 </html>
